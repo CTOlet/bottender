@@ -36,6 +36,16 @@ class WhatsappContext extends Context<Chat2DeskClient, WhatsappEvent> {
       ...options,
     });
   }
+
+  async transferToHuman() {
+    const { messageId } = this._event.rawEvent;
+    const operatorId = 27595;
+
+    return this._client.assignToOperator({
+      messageId,
+      operatorId,
+    });
+  }
 }
 
 export default WhatsappContext;

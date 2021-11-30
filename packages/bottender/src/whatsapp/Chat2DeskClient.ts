@@ -43,6 +43,11 @@ interface Chat2DeskMessageResponse {
   status: Chat2DeskResponseStatus;
 }
 
+interface AssignToOperatorOptions {
+  messageId: number;
+  operatorId: number;
+}
+
 function handleError(err: AxiosError): never {
   if (err.response && err.response.data) {
     const error = get(err, 'response.data', {});
@@ -60,7 +65,6 @@ export default class Chat2DeskClient {
   _onRequest: OnRequestFunction | undefined;
 
   _axios: AxiosInstance;
-
 
   _bearerToken: string;
 
@@ -105,9 +109,22 @@ export default class Chat2DeskClient {
           ...message,
         })
       );
+
       return camelcaseKeys(data);
     } catch (err) {
       handleError(err);
+    }
+  }
+
+  async assignToOperator({ messageId, operatorId }: AssignToOperatorOptions) {
+    try {
+      const { data } = await this._axios.get<{ data: []; success: string }>(
+        `/messages/${messageId}/transfer?operator_id=${operatorId}`
+      );
+
+      return camelcaseKeys(data);
+    } catch (error) {
+      handleError(error);
     }
   }
 }
