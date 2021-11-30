@@ -3,85 +3,38 @@ import { RequestContext } from '../types';
 export { WhatsappConnectorOptions } from './WhatsappConnector';
 
 export type MessageReceivedCommon = {
-  /**
-   * A 34 character unique identifier for the message. May be used to later retrieve this message from the REST API.
-   */
-  messageSid: string;
-  /**
-   * A 34 character unique identifier for the message. May be used to later retrieve this message from the REST API.
-   */
-  smsMessageSid: string;
-  /**
-   * Same value as MessageSid. Deprecated and included for backward compatibility.
-   */
-  smsSid: string;
-  /**
-   * The delivery status of the message.
-   */
-  smsStatus: 'received';
-  /**
-   * The 34 character id of the Account this message is associated with.
-   */
-  accountSid: string;
-  /**
-   * The phone number or Channel address that sent this message.
-   */
-  from: string;
-  /**
-   * The phone number or Channel address of the recipient.
-   */
-  to: string;
-  /**
-   * The text body of the message. Up to 1600 characters long.
-   */
-  body: string;
-  /**
-   * For outbound messages, this property indicates the number of SMS messages it took to deliver the body of the message.
-   */
-  numSegments: string;
-  /**
-   * The version of the API.
-   */
-  apiVersion: '2010-04-01';
-  /**
-   * The city of the sender
-   */
-  fromCity?: string;
-  /**
-   * The state or province of the sender.
-   */
-  fromState?: string;
-  /**
-   * The postal code of the called sender.
-   */
-  fromZip?: string;
-  /**
-   * The country of the called sender.
-   */
-  fromCountry?: string;
-  /**
-   * The city of the recipient.
-   */
-  toCity?: string;
-  /**
-   * The state or province of the recipient.
-   */
-  toState?: string;
-  /**
-   * The postal code of the recipient.
-   */
-  toZip?: string;
-  /**
-   * The country of the recipient.
-   */
-  toCountry?: string;
+  messageId: number;
+  type: 'from_client';
+  text: string;
+  transport: 'wa_dialog';
+  clientId: number;
+  operatorId: number | null;
+  dialogId: number;
+  channelId: number;
+  photo: string | null;
+  coordinates: string | null;
+  audio: string | null;
+  pdf: string | null;
+  client: {
+    id: number;
+    phone: string;
+    clientPhone: string | null;
+    name: string;
+    assignedName: string | null;
+    externalId: number | null;
+  };
+  hookType: 'inbox' | 'outbox';
+  requestId: number;
+  isNewRequest: boolean;
+  isNewClient: boolean;
+  instaComment: boolean;
+  extraData: null;
+  isNew: boolean;
+  eventTime: string;
 };
 
 export type TextMessageReceived = MessageReceivedCommon & {
-  /**
-   * The number of media items associated with your message
-   */
-  numMedia: '0';
+  attachments: [];
 };
 
 /**
@@ -89,15 +42,21 @@ export type TextMessageReceived = MessageReceivedCommon & {
  * WhatsApp messages will only contain one media file per incoming message, so you can access the file at MediaUrl0 on the incoming request from Twilio to your webhook URL.
  */
 export type MediaMessageReceived = MessageReceivedCommon & {
-  numMedia: '1';
-  /**
-   * The ContentTypes for the Media stored at MediaUrl0.
-   */
-  mediaContentType0: string;
-  /**
-   * A URL referencing the content of the media received in the Message.
-   */
-  mediaUrl0: string;
+  attachments: {
+    id: number;
+    resourceType: string;
+    resourceId: number;
+    file: {
+      url: string;
+    };
+    hardLink: string;
+    contentType: string;
+    createdAt: string;
+    updatedAt: string;
+    companyId: number;
+    originalFileName: null;
+    fileSize: number;
+  }[];
 };
 
 export type MessageReceived = TextMessageReceived | MediaMessageReceived;
@@ -128,11 +87,7 @@ export type MessageRead = MessageStatusCommon<'read'> & {
   eventType: 'READ';
 };
 
-export type WhatsappRawEvent =
-  | MessageReceived
-  | MessageSent
-  | MessageDelivered
-  | MessageRead;
+export type WhatsappRawEvent = MessageReceived;
 
 export type WhatsappRequestBody = any;
 

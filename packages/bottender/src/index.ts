@@ -55,7 +55,7 @@ export { default as WhatsappBot } from './whatsapp/WhatsappBot';
 export { default as WhatsappConnector } from './whatsapp/WhatsappConnector';
 export { default as WhatsappContext } from './whatsapp/WhatsappContext';
 export { default as WhatsappEvent } from './whatsapp/WhatsappEvent';
-export { default as TwilioClient } from './whatsapp/TwilioClient';
+export { default as Chat2DeskClient } from './whatsapp/Chat2DeskClient';
 export { WhatsappTypes };
 
 /* LINE */

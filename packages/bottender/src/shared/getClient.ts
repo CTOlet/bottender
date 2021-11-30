@@ -4,11 +4,11 @@ import { SlackOAuthClient } from 'messaging-api-slack';
 import { TelegramClient } from 'messaging-api-telegram';
 import { ViberClient } from 'messaging-api-viber';
 
+import Chat2DeskClient from '../whatsapp/Chat2DeskClient';
 import LineBot from '../line/LineBot';
 import MessengerBot from '../messenger/MessengerBot';
 import SlackBot from '../slack/SlackBot';
 import TelegramBot from '../telegram/TelegramBot';
-import TwilioClient from '../whatsapp/TwilioClient';
 import ViberBot from '../viber/ViberBot';
 import WhatsappBot from '../whatsapp/WhatsappBot';
 import { Channel } from '../types';
@@ -38,7 +38,7 @@ function getClient<C extends string>(
   : C extends 'viber'
   ? ViberClient
   : C extends 'whatsapp'
-  ? TwilioClient
+  ? Chat2DeskClient
   : any {
   const { channels = {} } = getBottenderConfig();
   const sessionStore = getSessionStore();

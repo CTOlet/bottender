@@ -1,9 +1,9 @@
 import Context from '../context/Context';
 
-import TwilioClient from './TwilioClient';
+import Chat2DeskClient from './Chat2DeskClient';
 import WhatsappEvent from './WhatsappEvent';
 
-class WhatsappContext extends Context<TwilioClient, WhatsappEvent> {
+class WhatsappContext extends Context<Chat2DeskClient, WhatsappEvent> {
   /**
    * The name of the platform.
    *
@@ -13,29 +13,26 @@ class WhatsappContext extends Context<TwilioClient, WhatsappEvent> {
   }
 
   /**
-   * Send text to the owner of then session.
+   * Send text to the owner of the session.
    *
    */
   async sendText(
     text: string,
     options?: {
-      maxPrice?: number;
-      provideFeedback?: boolean;
-      validityPeriod?: number;
-      forceDelivery?: boolean;
-      smartEncoded?: boolean;
-      persistentAction?: string[];
-      mediaUrl?: string[];
+      attachment?: string;
+      pdf?: string;
+      operatorId?: number;
+      openDialog?: boolean;
+      encrypted?: boolean;
+      externalId?: number;
     }
   ): Promise<any> {
-    const to =
-      this._event.rawEvent.smsStatus === 'received'
-        ? this._event.rawEvent.from
-        : this._event.rawEvent.to;
+    const { clientId, channelId } = this._event.rawEvent;
 
     return this._client.createMessage({
-      to,
-      body: text,
+      clientId,
+      channelId,
+      text,
       ...options,
     });
   }
