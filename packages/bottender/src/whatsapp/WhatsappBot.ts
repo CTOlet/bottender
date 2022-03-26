@@ -1,7 +1,7 @@
 import Bot, { OnRequest } from '../bot/Bot';
 import SessionStore from '../session/SessionStore';
 
-import TwilioClient from './TwilioClient';
+import Chat2DeskClient from './Chat2DeskClient';
 import WhatsappConnector, {
   WhatsappConnectorOptions,
 } from './WhatsappConnector';
@@ -11,7 +11,7 @@ import { WhatsappRequestBody } from './WhatsappTypes';
 
 export default class WhatsappBot extends Bot<
   WhatsappRequestBody,
-  TwilioClient,
+  Chat2DeskClient,
   WhatsappEvent,
   WhatsappContext
 > {

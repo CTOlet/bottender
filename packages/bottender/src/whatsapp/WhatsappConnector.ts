@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { EventEmitter } from 'events';
 
 import { JsonObject } from 'type-fest';
@@ -7,57 +6,35 @@ import Session from '../session/Session';
 import { Connector } from '../bot/Connector';
 import { RequestContext } from '../types';
 
-import TwilioClient from './TwilioClient';
+import Chat2DeskClient, { Chat2DeskClientConfig } from './Chat2DeskClient';
 import WhatsappContext from './WhatsappContext';
 import WhatsappEvent from './WhatsappEvent';
 import { WhatsappRequestBody, WhatsappRequestContext } from './WhatsappTypes';
 
-type ConnectorOptionsWithoutClient = {
-  accountSid: string;
-  authToken: string;
-  phoneNumber: string;
-  origin?: string;
-};
+type ConnectorOptionsWithoutClient = Chat2DeskClientConfig;
 
-type ConnectorOptionsWithClient = {
-  client: TwilioClient;
-  origin?: string;
+type ConnectorOptionsWithClient = Chat2DeskClientConfig & {
+  client: Chat2DeskClient;
 };
 
 export type WhatsappConnectorOptions =
   | ConnectorOptionsWithoutClient
   | ConnectorOptionsWithClient;
 
-function getExpectedTwilioSignature(
-  authToken: string,
-  url: string,
-  params: Record<string, string> = {}
-) {
-  const data = Object.keys(params)
-    .sort()
-    .reduce((acc, key) => acc + key + params[key], url);
-
-  return crypto
-    .createHmac('sha1', authToken)
-    .update(Buffer.from(data, 'utf-8'))
-    .digest('base64');
-}
-
 export default class WhatsappConnector
-  implements Connector<WhatsappRequestBody, TwilioClient>
+  implements Connector<WhatsappRequestBody, Chat2DeskClient>
 {
-  _client: TwilioClient;
+  _client: Chat2DeskClient;
 
   constructor(options: WhatsappConnectorOptions) {
     if ('client' in options) {
       this._client = options.client;
     } else {
-      const { accountSid, authToken, phoneNumber, origin } = options;
+      const { bearerToken, transport, origin } = options;
 
-      this._client = new TwilioClient({
-        accountSid,
-        authToken,
-        phoneNumber,
+      this._client = new Chat2DeskClient({
+        bearerToken,
+        transport,
         origin,
       });
     }
@@ -67,19 +44,19 @@ export default class WhatsappConnector
     return 'whatsapp';
   }
 
-  get client(): TwilioClient {
+  get client(): Chat2DeskClient {
     return this._client;
   }
 
   getUniqueSessionKey(body: WhatsappRequestBody): string {
-    return body.smsStatus === 'received' ? body.from : body.to;
+    return body.clientId;
   }
 
   async updateSession(
     session: Session,
     body: WhatsappRequestBody
   ): Promise<void> {
-    const userId = body.smsStatus === 'received' ? body.from : body.to;
+    const userId = body.clientId;
 
     session.user = {
       _updatedAt: new Date().toISOString(),
@@ -112,65 +89,10 @@ export default class WhatsappConnector
     });
   }
 
-  verifySignature({
-    body,
-    url,
-    headers,
-  }: {
-    headers: WhatsappRequestContext['headers'];
-    url: string;
-    body: WhatsappRequestBody;
-  }): boolean {
-    if (!headers['x-twilio-signature']) {
-      return false;
-    }
-    const authToken = this._client.authToken;
-
-    const bufferFromActualSignature = Buffer.from(
-      headers['x-twilio-signature']
-    );
-
-    const bufferFromExpectedSignature = Buffer.from(
-      getExpectedTwilioSignature(authToken, url, body)
-    );
-
-    // return early here if buffer lengths are not equal since timingSafeEqual
-    // will throw if buffer lengths are not equal
-    if (
-      bufferFromActualSignature.length !== bufferFromExpectedSignature.length
-    ) {
-      return false;
-    }
-
-    return crypto.timingSafeEqual(
-      bufferFromActualSignature,
-      bufferFromExpectedSignature
-    );
-  }
-
-  preprocess({ url, headers, rawBody, body }: WhatsappRequestContext) {
-    if (this.verifySignature({ body, url, headers })) {
-      return {
-        shouldNext: true,
-      };
-    }
-
-    const error = {
-      message: 'WhatsApp Signature Validation Failed!',
-      request: {
-        rawBody,
-        headers: {
-          'x-twilio-signature': headers['x-twilio-signature'],
-        },
-      },
-    };
-
+  preprocess(_requestContext: WhatsappRequestContext) {
+    // Do nothing
     return {
-      shouldNext: false,
-      response: {
-        status: 400,
-        body: { error },
-      },
+      shouldNext: true,
     };
   }
 }

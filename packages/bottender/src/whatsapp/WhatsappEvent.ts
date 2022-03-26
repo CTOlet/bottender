@@ -2,10 +2,7 @@ import { Event } from '../context/Event';
 
 import {
   MediaMessageReceived,
-  MessageDelivered,
-  MessageRead,
   MessageReceived,
-  MessageSent,
   WhatsappRawEvent,
 } from './WhatsappTypes';
 
@@ -29,7 +26,7 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    *
    */
   get isMessage(): boolean {
-    return this._rawEvent.smsStatus === 'received';
+    return this._rawEvent.hookType === 'inbox';
   }
 
   /**
@@ -46,7 +43,7 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    */
   get isText(): boolean {
     return (
-      this._rawEvent.smsStatus === 'received' && this._rawEvent.numMedia === '0'
+      this._rawEvent.hookType === 'inbox' && this._rawEvent.attachments === []
     );
   }
 
@@ -55,7 +52,7 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    *
    */
   get text(): string | null {
-    return (this._rawEvent as MessageReceived).body || null;
+    return (this._rawEvent as MessageReceived).text || null;
   }
 
   /**
@@ -64,7 +61,8 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    */
   get isMedia(): boolean {
     return (
-      this._rawEvent.smsStatus === 'received' && this._rawEvent.numMedia === '1'
+      this._rawEvent.hookType === 'inbox' &&
+      this._rawEvent.attachments.length > 0
     );
   }
 
@@ -78,8 +76,8 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
     const rawEvent = this._rawEvent as MediaMessageReceived;
 
     return {
-      contentType: rawEvent.mediaContentType0,
-      url: rawEvent.mediaUrl0,
+      contentType: rawEvent.attachments[0].contentType,
+      url: rawEvent.attachments[0].file.url,
     };
   }
 
@@ -88,7 +86,7 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    *
    */
   get isReceived(): boolean {
-    return this._rawEvent.smsStatus === 'received';
+    return this._rawEvent.hookType === 'inbox';
   }
 
   /**
@@ -97,53 +95,5 @@ export default class WhatsappEvent implements Event<WhatsappRawEvent> {
    */
   get received(): MessageReceived | null {
     return this.isReceived ? (this._rawEvent as MessageReceived) : null;
-  }
-
-  /**
-   * Determine if the event is a message sent event.
-   *
-   */
-  get isSent(): boolean {
-    return this._rawEvent.smsStatus === 'sent';
-  }
-
-  /**
-   * The sent object from WhatsApp raw event.
-   *
-   */
-  get sent(): MessageSent | null {
-    return this.isSent ? (this._rawEvent as MessageSent) : null;
-  }
-
-  /**
-   * Determine if the event is a message delivered event.
-   *
-   */
-  get isDelivered(): boolean {
-    return this._rawEvent.smsStatus === 'delivered';
-  }
-
-  /**
-   * The delivered object from WhatsApp raw event.
-   *
-   */
-  get delivered(): MessageDelivered | null {
-    return this.isDelivered ? (this._rawEvent as MessageDelivered) : null;
-  }
-
-  /**
-   * Determine if the event is a message read event.
-   *
-   */
-  get isRead(): boolean {
-    return this._rawEvent.smsStatus === 'read';
-  }
-
-  /**
-   * The read object from WhatsApp raw event.
-   *
-   */
-  get read(): MessageRead | null {
-    return this.isRead ? (this._rawEvent as MessageRead) : null;
   }
 }
