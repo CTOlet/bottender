@@ -39,7 +39,7 @@ class WhatsappContext extends Context<Chat2DeskClient, WhatsappEvent> {
 
   async transferToHuman() {
     const { messageId } = this._event.rawEvent;
-    const operatorId = 27595;
+    const operatorId = 27969;
 
     return this._client.assignToOperator({
       messageId,

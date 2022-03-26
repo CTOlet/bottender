@@ -60,7 +60,6 @@
     "once": "^1.4.0",
     "prettier": "^2.4.1",
     "prettier-package-json": "^2.6.0",
-    "rimraf": "^3.0.2",
     "supertest": "^6.1.6",
     "ts-jest": "^27.0.5",
     "typescript": "^3.9.6"
